@@ -1,3 +1,4 @@
+
 //
 //  Calculator - ViewController.swift
 //  Created by yagom.
@@ -9,7 +10,6 @@ import UIKit
 class CalculatorViewController: UIViewController {
     private var userTyping = false
     private var formula = ""
-    private var initalNumber = 0
     private let numberFormatter = NumberFormatter()
     
     @IBOutlet weak var displayOperandLabel: UILabel!
@@ -35,11 +35,27 @@ class CalculatorViewController: UIViewController {
         guard let inputOperator = sender.currentTitle else { return }
         
         addFormula()
+        
         displayOperatorLabel.text = inputOperator
+        print(formula)
     }
     
     @IBAction func touchCalculate(_ sender: UIButton) {
-        guard userTyping == false else { return }
+        guard let operands = displayOperandLabel.text,
+              let `operator` = displayOperatorLabel.text else { return }
+        
+        addFormula()
+        
+        guard let result = calculateFormula() else { return }
+
+        if `operator` == String(Operator.divide.rawValue) && operands == "0" {
+            displayOperandLabel.text = "NaN"
+        } else {
+            displayOperandLabel.text = result
+            clearFormula()
+            clearStackView()
+        }
+        clearOperatorLabel()
     }
     
     @IBAction func touchMenu(_ sender: UIButton) {
@@ -49,14 +65,15 @@ class CalculatorViewController: UIViewController {
         case "AC":
             clearOperandLabel()
             clearOperatorLabel()
+            clearStackView()
         case "CE":
-            print("clearEntry")
+            clearOperandLabel()
         case "⁺⁄₋":
             changeSign()
         case ".":
-            print(".")
+            print("dotSign")
         case "00":
-            print("00")
+            print("doubleZero")
         default:
             break
         }
@@ -66,29 +83,20 @@ class CalculatorViewController: UIViewController {
               let number = Double(operands + input),
               let result = numberFormatter.string(for: number) else { return }
         
-        if operands.contains(".") {
-            let result = operands + input
-            displayOperandLabel.text = result
-            return
-        }
-        
+        userTyping = false
         displayOperandLabel.text = result
     }
     
     private func addFormula() {
-        guard let operands = displayOperandLabel.text,
+        guard let operands = displayOperandLabel.text?.replacingOccurrences(of: ",", with: ""),
               let `operator` = displayOperatorLabel.text else { return }
         
         if formula.isEmpty && operands != "0" {
             formula += operands
             addStackView("", operands)
-        } else if operands != "0" {
-            formula += "\(`operator`) \(operands)"
+        } else if operands != "0" || (`operator` == String(Operator.divide.rawValue) && operands == "0") {
+            formula += " \(`operator`) \(operands)"
             addStackView(`operator`, operands)
-        }
-        
-        if `operator` == String(Operator.divide.rawValue) && operands == "0" {
-            formula += "\(`operator`) \(operands)"
         }
         
         clearOperandLabel()
@@ -98,18 +106,25 @@ class CalculatorViewController: UIViewController {
     
     private func addStackView(_ `operator`: String, _ operands: String) {
         let label = UILabel()
+        label.textColor = .white
+        label.textAlignment = .center
         label.text = "\(`operator`) \(operands)"
         
         stackView.addArrangedSubview(label)
+        
     }
     
     private func calculateFormula() -> String? {
         var parsedValue = ExpressionParser.parse(from: formula)
+        
+        userTyping = true
+
         return numberFormatter.string(for: parsedValue.result())
     }
     
     private func changeSign() {
-        guard var operands = displayOperandLabel.text, operands != "0" else { return }
+        guard var operands = displayOperandLabel.text,
+              operands != "0" else { return }
         
         if operands.contains("-") {
             operands.removeFirst()
@@ -120,12 +135,12 @@ class CalculatorViewController: UIViewController {
         displayOperandLabel.text = operands
     }
     
-    private func clearEntry() {
-    
+    private func dotSign() {
+              
     }
     
-    private func dotButton() {
-        guard let opreand = displayOperandLabel.text else { return }
+    private func doubleZero() {
+        
     }
     
     private func clearOperandLabel() {
@@ -134,6 +149,10 @@ class CalculatorViewController: UIViewController {
     
     private func clearOperatorLabel() {
         displayOperatorLabel.text?.removeAll()
+    }
+    
+    private func clearFormula() {
+        formula.removeAll()
     }
     
     private func clearStackView() {
@@ -147,3 +166,4 @@ class CalculatorViewController: UIViewController {
         numberFormatter.maximumSignificantDigits = 20
     }
 }
+
