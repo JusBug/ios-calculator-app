@@ -33,7 +33,7 @@ class CalculatorViewController: UIViewController {
     
     @IBAction func touchOperator(_ sender: UIButton) {
         guard let inputOperator = sender.currentTitle else { return }
-        
+
         addFormula()
         
         displayOperatorLabel.text = inputOperator
@@ -91,7 +91,7 @@ class CalculatorViewController: UIViewController {
         guard let operands = displayOperandLabel.text?.replacingOccurrences(of: ",", with: ""),
               let `operator` = displayOperatorLabel.text else { return }
         
-        if formula.isEmpty && operands != "0" {
+        if operands != "0" && `operator`.isEmpty {
             formula += operands
             addStackView("", operands)
         } else if operands != "0" || (`operator` == String(Operator.divide.rawValue) && operands == "0") {
@@ -105,21 +105,21 @@ class CalculatorViewController: UIViewController {
 
     
     private func addStackView(_ `operator`: String, _ operands: String) {
-        let label = UILabel()
-        label.textColor = .white
-        label.textAlignment = .center
-        label.text = "\(`operator`) \(operands)"
+        let stackLabel = UILabel()
+        stackLabel.textColor = .white
+        stackLabel.textAlignment = .center
+        stackLabel.text = "\(`operator`) \(operands)"
         
-        stackView.addArrangedSubview(label)
-        
+        stackView.addArrangedSubview(stackLabel)
     }
     
     private func calculateFormula() -> String? {
         var parsedValue = ExpressionParser.parse(from: formula)
+        let result = parsedValue.result()
         
         userTyping = true
 
-        return numberFormatter.string(for: parsedValue.result())
+        return numberFormatter.string(for: result)
     }
     
     private func changeSign() {
