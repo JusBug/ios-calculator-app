@@ -52,9 +52,10 @@ class CalculatorViewController: UIViewController {
             displayOperandLabel.text = "NaN"
         } else {
             displayOperandLabel.text = result
-            clearFormula()
             clearStackView()
         }
+        print(formula)
+        clearFormula()
         clearOperatorLabel()
     }
     
@@ -66,6 +67,7 @@ class CalculatorViewController: UIViewController {
             clearOperandLabel()
             clearOperatorLabel()
             clearStackView()
+            clearFormula()
         case "CE":
             clearOperandLabel()
         case "⁺⁄₋":
@@ -166,4 +168,3 @@ class CalculatorViewController: UIViewController {
         numberFormatter.maximumSignificantDigits = 20
     }
 }
-
